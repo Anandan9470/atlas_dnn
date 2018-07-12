@@ -21,11 +21,11 @@ from matplotlib.colors import from_levels_and_colors
 
 import numpy as np
 
-path = '/media/anandan/3474068674064B56/CERN/Program/cern_gan/'
+path = "/media/anandan/3474068674064B56/CERN/Program/atlas_sim_gan/"
 
 def get_data():
 
-    data = np.loadtxt(path+"data/vectorized_cylindrical_positive.csv", delimiter=',')
+    data = np.loadtxt(path+"data/vectorized/vectorized_cylindrical.csv", delimiter=',')
 
     while(True):
 

@@ -4,12 +4,13 @@ from mpl_toolkits.mplot3d import Axes3D
 import pandas as pd
 
 filename = "NTUP_FCS.13289379._000001.pool.root.1"
+path="/media/anandan/3474068674064B56/CERN/Program/atlas_sim_gan/"
 
 def get_one_event(layer=1, requireEnergy = False):
 
     x, y, z, E = [], [], [], []
 
-    with open("../data/layer_wise/"+filename+"_Layer_"+str(layer)+".csv"  , 'r') as f:
+    with open(path +"data/layer_wise/"+filename+"_Layer_"+str(layer)+".csv", 'r') as f:
         for i,event in enumerate(f):
             event = event.split(';')
 
@@ -32,7 +33,7 @@ def get_all_events(layer=1, requireEnergy = False):
 
     x, y, z, E = [], [], [], []
 
-    with open("../data/layer_wise/"+filename+"_Layer_"+str(layer)+".csv"  , 'r') as f:
+    with open(path +"data/layer_wise/"+filename+"_Layer_"+str(layer)+".csv", 'r') as f:
         for i,event in enumerate(f):
 
             if event != '\n':

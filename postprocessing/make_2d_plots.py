@@ -10,12 +10,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import from_levels_and_colors
 
-path = '/media/anandan/3474068674064B56/CERN/Program/cern_gan/'
+filename = "NTUP_FCS.13289379._000001.pool.root.1"
+path="/media/anandan/3474068674064B56/CERN/Program/atlas_sim_gan/"
 
 def get_data():
 
     #data = np.loadtxt(path+"data/vectorized_cylindrical_positive/batch_0.csv", delimiter=',')
-    data = np.loadtxt("batch_0.csv", delimiter=',')
+    data = np.loadtxt(path+"data/samples/samples_tanh.csv", delimiter=',')
 
     while(True):
 

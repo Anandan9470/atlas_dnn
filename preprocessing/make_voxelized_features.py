@@ -12,17 +12,14 @@ from pyntcloud import PyntCloud
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
-import warnings
-warnings.filterwarnings("ignore")
-
+path = "/media/anandan/3474068674064B56/CERN/Program/atlas_sim_gan/"
 filename = "NTUP_FCS.13289379._000001.pool.root.1"
-path = '/media/anandan/3474068674064B56/CERN/Program/cern_gan'
 
 def get_hits(event_range=range(0,10), layer=0):
 
     xyzE = []
 
-    with open(path+"/data/layer_wise/"+filename+"_Layer_"+str(layer)+".csv"  , 'r') as f:
+    with open(path+"data/layer_wise/"+filename+"_Layer_"+str(layer)+".csv", 'r') as f:
         for i,event in enumerate(f):
 
             if i in event_range:
@@ -213,7 +210,7 @@ for n in range(0,20):
 
         feature_vector_g = voxalize_by_layer(event_cylindrical,
                                              layer='g',
-                                             segments = [np.logspace(r_lower, np.log10(r_upper), 16, endpoint=True),
+                                             segments = [np.logspace(r_lower, np.log10(r_upper), 11, endpoint=True),
                                                          np.linspace(alpha_lower, alpha_upper, 11),
                                                          np.linspace(layer_2_min, layer_2_max, 1)])
 

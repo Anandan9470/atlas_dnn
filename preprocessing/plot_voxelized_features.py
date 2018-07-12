@@ -12,14 +12,14 @@ from pyntcloud import PyntCloud
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
+path = "/media/anandan/3474068674064B56/CERN/Program/atlas_sim_gan/"
 filename = "NTUP_FCS.13289379._000001.pool.root.1"
-path = '/media/anandan/3474068674064B56/CERN/Program/cern_gan'
 
 def get_hits(event_range=range(0,10), layer=0):
 
     xyzE = []
 
-    with open(path+"/data/layer_wise/"+filename+"_Layer_"+str(layer)+".csv"  , 'r') as f:
+    with open(path+"data/layer_wise/"+filename+"_Layer_"+str(layer)+".csv", 'r') as f:
         for i,event in enumerate(f):
 
             if i in event_range:
@@ -136,9 +136,9 @@ event_cartisian.colors[event_cartisian.colors==12] = 'm'
 
 event_cartisian = event_cartisian[event_cartisian.E > 0]
 
-eta = pd.read_csv(path+"/data/"+filename+"_eta.csv", header=None, usecols=[0, 1, 2, 3])
-phi = pd.read_csv(path+"/data/"+filename+"_phi.csv", header=None, usecols=[0, 1, 2, 3])
-r = pd.read_csv(path+"/data/"+filename+"_r.csv", header=None, usecols=[0, 1, 2, 3])
+eta = pd.read_csv(path+"data/truth_angles/"+filename+"_eta.csv", header=None, usecols=[0, 1, 2, 3])
+phi = pd.read_csv(path+"data/truth_angles/"+filename+"_phi.csv", header=None, usecols=[0, 1, 2, 3])
+r = pd.read_csv(path+"data/truth_angles/"+filename+"_r.csv", header=None, usecols=[0, 1, 2, 3])
 
 event_r = np.linalg.norm(event_cartisian.loc[:,['x','y']], axis=1)
 event_phi = np.arctan2(event_cartisian.loc[:,'y'], event_cartisian.loc[:,'x'])
@@ -195,7 +195,7 @@ layer_12_max = np.ceil(event_cylindrical.loc[event_cylindrical.colors=='m'].z.ma
 
 feature_vector_r = voxalize_by_layer(event_cylindrical,
                                      layer='r',
-                                     segments = [np.logspace(r_lower, np.log10(r_upper), 6, endpoint=True),
+                                     segments = [np.logspace(r_lower, np.log10(r_upper), 11, endpoint=True),
                                                  np.linspace(alpha_lower, alpha_upper, 11),
                                                  np.linspace(layer_0_min, layer_0_max, 1)])
 
@@ -213,13 +213,13 @@ feature_vector_g = voxalize_by_layer(event_cylindrical,
 
 feature_vector_c = voxalize_by_layer(event_cylindrical,
                                      layer='c',
-                                     segments = [np.logspace(r_lower, np.log10(r_upper), 6, endpoint=True),
+                                     segments = [np.logspace(r_lower, np.log10(r_upper), 11, endpoint=True),
                                                  np.linspace(alpha_lower, alpha_upper, 11),
                                                  np.linspace(layer_3_min, layer_3_max, 1)])
 
 feature_vector_m = voxalize_by_layer(event_cylindrical,
                                      layer='m',
-                                     segments = [np.logspace(r_lower, np.log10(r_upper), 6, endpoint=True),
+                                     segments = [np.logspace(r_lower, np.log10(r_upper), 11, endpoint=True),
                                                  np.linspace(alpha_lower, alpha_upper, 11),
                                                  np.linspace(layer_12_min, layer_12_max, 1)])
 
@@ -227,8 +227,8 @@ feature_vector = np.concatenate([feature_vector_r,
                                  feature_vector_b,
                                  feature_vector_g,
                                  feature_vector_c,
-                                 feature_vector_m], axis=1)
+                                 feature_vector_m], axis=2)
 
 ax = fig.add_subplot(122, projection='3d')
-ax.voxels(feature_vector, edgecolor='k')
+ax.voxels(feature_vector,facecolors=feature_vector, edgecolor='k')
 plt.show()

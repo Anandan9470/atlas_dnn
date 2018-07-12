@@ -11,11 +11,11 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import from_levels_and_colors
 
 filename = "NTUP_FCS.13289379._000001.pool.root.1"
-path = "/media/anandan/3474068674064B56/CERN/Program/cern_gan/"
+path="/media/anandan/3474068674064B56/CERN/Program/atlas_sim_gan/"
 
 def get_energy(layer):
 
-    with open(path +"data/layer_wise/"+filename+"_Layer_"+str(layer)+".csv"  , 'r') as f:
+    with open(path +"data/layer_wise/"+filename+"_Layer_"+str(layer)+".csv", 'r') as f:
 
         E_l = []
         for i,event in enumerate(f):
@@ -62,7 +62,7 @@ E_tot = E_l0 + E_l1 + E_l2 + E_l3+ E_l12
 #    l12.extend(layer12_sum.tolist())
 #    ltot.extend(ltot_sum.tolist())
 
-batch = np.loadtxt('500_dim_log.csv', delimiter=',')
+batch = np.loadtxt(path+"data/samples/samples_tanh.csv", delimiter=',')
 batch[batch<=0] = 0
 
 l0 = batch[:,:100].sum(axis=1)
