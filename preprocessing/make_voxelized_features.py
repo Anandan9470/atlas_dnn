@@ -112,7 +112,7 @@ def voxalize_by_layer(event_cylindrical, layer, segments):
     if event_cylindrical_layer_wise.shape[0] == 0:
         return np.zeros(shape=((len(segments[0])-1) *
                                (len(segments[1])-1) *
-                               (len(segments[2])) ))
+                               (len(segments[2]))))
 
     ref_cloud = PyntCloud(event_cylindrical_layer_wise)
     voxelgrid_id = ref_cloud.add_structure("voxelgrid", segments=segments)
@@ -121,7 +121,7 @@ def voxalize_by_layer(event_cylindrical, layer, segments):
 
     return feature_vector.reshape((-1,))
 
-for n in range(0,20):
+for n in range(0,10):
 
     s = n*100
     e = s+100
@@ -131,7 +131,7 @@ for n in range(0,20):
 
     print("Percentage complted: %10.2f" %(n))
 
-    batch = np.empty((0,400), float)
+    batch = np.empty((0,500), float)
 
     for i, event in enumerate(event_range):
 
@@ -147,9 +147,9 @@ for n in range(0,20):
 
         event_cartisian = event_cartisian[event_cartisian.E > 0]
 
-        eta = pd.read_csv(path+"/data/"+filename+"_eta.csv", header=None, usecols=[0, 1, 2, 3])
-        phi = pd.read_csv(path+"/data/"+filename+"_phi.csv", header=None, usecols=[0, 1, 2, 3])
-        r = pd.read_csv(path+"/data/"+filename+"_r.csv", header=None, usecols=[0, 1, 2, 3])
+        eta = pd.read_csv(path+"data/truth_angles/"+filename+"_eta.csv", header=None, usecols=[0, 1, 2, 3])
+        phi = pd.read_csv(path+"data/truth_angles/"+filename+"_phi.csv", header=None, usecols=[0, 1, 2, 3])
+        r = pd.read_csv(path+"data/truth_angles/"+filename+"_r.csv", header=None, usecols=[0, 1, 2, 3])
 
         event_r = np.linalg.norm(event_cartisian.loc[:,['x','y']], axis=1)
         event_phi = np.arctan2(event_cartisian.loc[:,'y'], event_cartisian.loc[:,'x'])
@@ -198,7 +198,7 @@ for n in range(0,20):
 
         feature_vector_r = voxalize_by_layer(event_cylindrical,
                                              layer='r',
-                                             segments = [np.logspace(r_lower, np.log10(r_upper), 6, endpoint=True),
+                                             segments = [np.logspace(r_lower, np.log10(r_upper), 11, endpoint=True),
                                                          np.linspace(alpha_lower, alpha_upper, 11),
                                                          np.linspace(layer_0_min, layer_0_max, 1)])
 
@@ -216,13 +216,13 @@ for n in range(0,20):
 
         feature_vector_c = voxalize_by_layer(event_cylindrical,
                                              layer='c',
-                                             segments = [np.logspace(r_lower, np.log10(r_upper), 6, endpoint=True),
+                                             segments = [np.logspace(r_lower, np.log10(r_upper), 11, endpoint=True),
                                                          np.linspace(alpha_lower, alpha_upper, 11),
                                                          np.linspace(layer_3_min, layer_3_max, 1)])
 
         feature_vector_m = voxalize_by_layer(event_cylindrical,
                                              layer='m',
-                                             segments = [np.logspace(r_lower, np.log10(r_upper), 6, endpoint=True),
+                                             segments = [np.logspace(r_lower, np.log10(r_upper), 11, endpoint=True),
                                                          np.linspace(alpha_lower, alpha_upper, 11),
                                                          np.linspace(layer_12_min, layer_12_max, 1)])
 
@@ -235,4 +235,4 @@ for n in range(0,20):
         batch = np.vstack((batch, feature_vector))
 
 
-    np.savetxt(path+"/data/vectorized_cylindrical_log/batch_%d.csv" %n, batch, delimiter=',')
+    np.savetxt(path+"data/vectorized_cylindrical_log/batch_%d.csv" %n, batch, delimiter=',')

@@ -8,7 +8,7 @@ Created on Mon Jun 11 14:25:18 2018
 
 import numpy as np
 import pandas as pd
-from pyntcloud import PyntCloud
+from PC import PyntCloud
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
@@ -119,11 +119,11 @@ def voxalize_by_layer(event_cylindrical, layer, segments):
     return feature_vector#.reshape((-1,))
 
 
-s,e = 0,10
+s,e = 0,3
 event_range = range(s,e)
 xyzE = get_events(event_range)
 
-event=4
+event=1
 event_cartisian = xyzE[event]
 
 event_cartisian = pd.DataFrame(event_cartisian, columns=['x','y','z','E','colors'])
@@ -230,5 +230,5 @@ feature_vector = np.concatenate([feature_vector_r,
                                  feature_vector_m], axis=2)
 
 ax = fig.add_subplot(122, projection='3d')
-ax.voxels(feature_vector,facecolors=feature_vector, edgecolor='k')
+ax.voxels(feature_vector, edgecolor='k')
 plt.show()
