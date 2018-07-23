@@ -195,31 +195,31 @@ layer_12_max = np.ceil(event_cylindrical.loc[event_cylindrical.colors=='m'].z.ma
 
 feature_vector_r = voxalize_by_layer(event_cylindrical,
                                      layer='r',
-                                     segments = [np.logspace(r_lower, np.log10(r_upper), 11, endpoint=True),
+                                     segments = [np.linspace(r_lower, r_upper, 11),
                                                  np.linspace(alpha_lower, alpha_upper, 11),
                                                  np.linspace(layer_0_min, layer_0_max, 1)])
 
 feature_vector_b = voxalize_by_layer(event_cylindrical,
                                      layer='b',
-                                     segments = [np.logspace(r_lower, np.log10(r_upper), 11, endpoint=True),
+                                     segments = [np.linspace(r_lower, r_upper, 11),
                                                  np.linspace(alpha_lower, alpha_upper, 11),
                                                  np.linspace(layer_1_min, layer_1_max, 1)])
 
 feature_vector_g = voxalize_by_layer(event_cylindrical,
                                      layer='g',
-                                     segments = [np.logspace(r_lower, np.log10(r_upper), 11, endpoint=True),
+                                     segments = [np.linspace(r_lower, r_upper, 11),
                                                  np.linspace(alpha_lower, alpha_upper, 11),
                                                  np.linspace(layer_2_min, layer_2_max, 1)])
 
 feature_vector_c = voxalize_by_layer(event_cylindrical,
                                      layer='c',
-                                     segments = [np.logspace(r_lower, np.log10(r_upper), 11, endpoint=True),
+                                     segments = [np.linspace(r_lower, r_upper, 11),
                                                  np.linspace(alpha_lower, alpha_upper, 11),
                                                  np.linspace(layer_3_min, layer_3_max, 1)])
 
 feature_vector_m = voxalize_by_layer(event_cylindrical,
                                      layer='m',
-                                     segments = [np.logspace(r_lower, np.log10(r_upper), 11, endpoint=True),
+                                     segments = [np.linspace(r_lower, r_upper, 11),
                                                  np.linspace(alpha_lower, alpha_upper, 11),
                                                  np.linspace(layer_12_min, layer_12_max, 1)])
 

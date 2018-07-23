@@ -8,7 +8,6 @@ Created on Mon Jun 18 10:52:53 2018
 
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.colors import from_levels_and_colors
 
 filename = "NTUP_FCS.13289379._000001.pool.root.1"
 path="/media/anandan/3474068674064B56/CERN/Program/atlas_sim_gan/"
@@ -65,12 +64,12 @@ for i in range(10):
 #batch = np.loadtxt(path+"data/samples/samples_tanh.csv", delimiter=',')
 #batch[batch<=0] = 0
 
-l0 = batch[:,:100].sum(axis=1)
-l1 = batch[:,100:200].sum(axis=1)
-l2 = batch[:,200:300].sum(axis=1)
-l3 = batch[:,300:400].sum(axis=1)
-l12 = batch[:,400:500].sum(axis=1)
-ltot = batch.sum(axis=1)
+#l0 = batch[:,:100].sum(axis=1)
+#l1 = batch[:,100:200].sum(axis=1)
+#l2 = batch[:,200:300].sum(axis=1)
+#l3 = batch[:,300:400].sum(axis=1)
+#l12 = batch[:,400:500].sum(axis=1)
+#ltot = batch.sum(axis=1)
 
 fig = plt.figure()
 ax1 = fig.add_subplot(231)

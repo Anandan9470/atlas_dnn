@@ -37,7 +37,6 @@ class PyntCloud(object):
         """
 
         points = points.rename(index=str, columns={'r': 'x', 'alpha': 'y', 'z':'z'})
-
         self.points = points.loc[:,['x','y','z']]
         self.mesh = mesh
         self.structures = StructuresDict()
