@@ -121,7 +121,7 @@ def voxalize_by_layer(event_cylindrical, layer, segments):
 
     return feature_vector.reshape((-1,))
 
-for n in range(0,10):
+for n in range(80,100):
 
     s = n*100
     e = s+100
