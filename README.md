@@ -1,1 +1,1 @@
-# atlas_dnn
+# atlas_gan
