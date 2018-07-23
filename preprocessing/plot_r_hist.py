@@ -95,7 +95,7 @@ def filter_hits_by_dynamic_angle(event_spherical, layer, multiplier=2):
 
     return event_spherical
 
-def filter_hits_by_angle(event_spherical, r_angles, alpha_angles):
+def filter_hits_by_angle(event_spherical, r_angles, alpha_angles, layer):
 
     r_lower, r_upper = r_angles[0], r_angles[1]
     alpha_lower, alpha_upper = alpha_angles[0], alpha_angles[1]
@@ -130,13 +130,13 @@ r_l2 = []
 r_l3 = []
 r_l12 = []
 
-for n in range(0,3):
+for n in range(0,5):
 
     s = n*100
     e = s+100
 
     event_range = range(s,e)
-    xyzE = get_events(event_range)
+    #xyzE = get_events(event_range)
 
     print("Percentage complted: %10.2f" %(n))
 
@@ -185,7 +185,8 @@ for n in range(0,3):
 
         event_cylindrical = filter_hits_by_angle(event_cylindrical,
                                                r_angles=[r_lower, r_upper],
-                                               alpha_angles=[alpha_lower, alpha_upper])
+                                               alpha_angles=[alpha_lower, alpha_upper],
+                                               layer='r')
 
         r_l0.extend(event_cylindrical[event_cylindrical.colors=='r'].r.values.tolist())
         r_l1.extend(event_cylindrical[event_cylindrical.colors=='b'].r.values.tolist())
@@ -195,32 +196,55 @@ for n in range(0,3):
 
 fig = plt.figure()
 ax1 = fig.add_subplot(231)
-#ax1.hist(E_l0, bins=50, histtype=u'step', density=True, label='Truth')
 ax1.hist(r_l0, bins=1000, histtype=u'step', density=True, label='Processed')
+bins_l0 = np.interp(np.linspace(0, len(r_l0), 5+1),
+                    np.arange(len(r_l0)),
+                    np.sort(r_l0))
+for b in bins_l0:
+    plt.axvline(x=b, c='r')
 ax1.set_title('Layer 0')
 ax1.legend()
 
 ax2 = fig.add_subplot(232)
-#ax2.hist(E_l1, bins=50, histtype=u'step', density=True, label='Truth')
 ax2.hist(r_l1, bins=1000, histtype=u'step', density=True, label='Processed')
+bins_l1 = np.interp(np.linspace(0, len(r_l1), 10+1),
+                    np.arange(len(r_l1)),
+                    np.sort(r_l1))
+for b in bins_l1:
+    plt.axvline(x=b, c='r')
 ax2.set_title('Layer 1')
 ax2.legend()
 
 ax3 = fig.add_subplot(233)
-#ax3.hist(E_l2, bins=50, histtype=u'step', density=True, label='Truth')
 ax3.hist(r_l2, bins=1000, histtype=u'step', density=True, label='Processed')
+bins_l2 = np.interp(np.linspace(0, len(r_l2), 10+1),
+                    np.arange(len(r_l2)),
+                    np.sort(r_l2))
+for b in bins_l2:
+    plt.axvline(x=b, c='r')
 ax3.set_title('Layer 2')
 ax3.legend()
 
 ax4 = fig.add_subplot(234)
-#ax4.hist(E_l3, bins=50, histtype=u'step', density=True, label='Truth')
 ax4.hist(r_l3, bins=1000, histtype=u'step', density=True, label='Processed')
+bins_l3 = np.interp(np.linspace(0, len(r_l3), 10+1),
+                    np.arange(len(r_l3)),
+                    np.sort(r_l3))
+for b in bins_l3:
+    plt.axvline(x=b, c='r')
 ax4.set_title('Layer 3')
 ax4.legend()
 
 ax5 = fig.add_subplot(235)
-#ax5.hist(E_l12, bins=50, histtype=u'step', density=True, label='Truth')
 ax5.hist(r_l12, bins=1000, histtype=u'step', density=True, label='Processed')
+bins_l12 = np.interp(np.linspace(0, len(r_l12), 10+1),
+                     np.arange(len(r_l12)),
+                     np.sort(r_l12))
+for b in bins_l12:
+    plt.axvline(x=b, c='r')
 ax5.set_title('Layer 12')
 ax5.legend()
 plt.show()
+
+#binnings = np.vstack([bins_l0, bins_l1, bins_l2, bins_l3, bins_l12])
+#np.savetxt('r_binnings.csv', binnings, delimiter=',')

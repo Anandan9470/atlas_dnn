@@ -110,9 +110,9 @@ def voxalize_by_layer(event_cylindrical, layer, segments):
     event_cylindrical_layer_wise = event_cylindrical.loc[event_cylindrical.colors==layer, :]
 
     if event_cylindrical_layer_wise.shape[0] == 0:
-        return np.zeros(shape=((len(segments[0])-1) *
-                               (len(segments[1])-1) *
-                               (len(segments[2]))))
+        return np.zeros(shape=(max(1,len(segments[0])-1)*
+                               max(1,len(segments[1])-1)*
+                               max(1,len(segments[2])-1)))
 
     ref_cloud = PyntCloud(event_cylindrical_layer_wise)
     voxelgrid_id = ref_cloud.add_structure("voxelgrid", segments=segments)
@@ -131,7 +131,7 @@ for n in range(0,10):
 
     print("Percentage complted: %10.2f" %(n))
 
-    batch = np.empty((0,500), float)
+    batch = np.empty((0,230), float)
 
     for i, event in enumerate(event_range):
 
@@ -196,34 +196,36 @@ for n in range(0,10):
         layer_12_min = np.ceil(event_cylindrical.loc[event_cylindrical.colors=='m'].z.min())+1
         layer_12_max = np.ceil(event_cylindrical.loc[event_cylindrical.colors=='m'].z.max())-1
 
+        r_binnings = np.loadtxt('r_binnings.csv', delimiter=',')
+
         feature_vector_r = voxalize_by_layer(event_cylindrical,
                                              layer='r',
-                                             segments = [np.linspace(r_lower, r_upper, 11),
-                                                         np.linspace(alpha_lower, alpha_upper, 11),
+                                             segments = [r_binnings[0,:],
+                                                         np.linspace(alpha_lower, alpha_upper, 1),
                                                          np.linspace(layer_0_min, layer_0_max, 1)])
 
         feature_vector_b = voxalize_by_layer(event_cylindrical,
                                              layer='b',
-                                             segments = [np.linspace(r_lower, r_upper, 11),
+                                             segments = [r_binnings[1,:],
                                                          np.linspace(alpha_lower, alpha_upper, 11),
                                                          np.linspace(layer_1_min, layer_1_max, 1)])
 
         feature_vector_g = voxalize_by_layer(event_cylindrical,
                                              layer='g',
-                                             segments = [np.linspace(r_lower, r_upper, 11),
+                                             segments = [r_binnings[2,:],
                                                          np.linspace(alpha_lower, alpha_upper, 11),
                                                          np.linspace(layer_2_min, layer_2_max, 1)])
 
         feature_vector_c = voxalize_by_layer(event_cylindrical,
                                              layer='c',
-                                             segments = [np.linspace(r_lower, r_upper, 11),
-                                                         np.linspace(alpha_lower, alpha_upper, 11),
+                                             segments = [r_binnings[3,:],
+                                                         np.linspace(alpha_lower, alpha_upper, 1),
                                                          np.linspace(layer_3_min, layer_3_max, 1)])
 
         feature_vector_m = voxalize_by_layer(event_cylindrical,
                                              layer='m',
-                                             segments = [np.linspace(r_lower, r_upper, 11),
-                                                         np.linspace(alpha_lower, alpha_upper, 11),
+                                             segments = [r_binnings[4,:],
+                                                         np.linspace(alpha_lower, alpha_upper, 1),
                                                          np.linspace(layer_12_min, layer_12_max, 1)])
 
         feature_vector = np.concatenate([feature_vector_r,

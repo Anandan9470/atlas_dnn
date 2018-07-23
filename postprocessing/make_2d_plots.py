@@ -15,8 +15,8 @@ path="/media/anandan/3474068674064B56/CERN/Program/atlas_sim_gan/"
 
 def get_data():
 
-    #data = np.loadtxt(path+"data/vectorized_cylindrical_positive/batch_0.csv", delimiter=',')
-    data = np.loadtxt(path+"data/samples/samples_tanh.csv", delimiter=',')
+    data = np.loadtxt(path+"data/vectorized_cylindrical_log/batch_0.csv", delimiter=',')
+    #data = np.loadtxt(path+"data/samples/samples_tanh.csv", delimiter=',')
 
     while(True):
 
@@ -29,7 +29,7 @@ batch_transformed = data_gen.__next__()
 
 for i,b in enumerate(batch_transformed):
 
-    b = np.reshape(b, newshape=(10,40), order='F')
+    b = np.reshape(b, newshape=(10,50), order='F')
     b = np.log(b+10e-5)
 
     b[b<=0] = np.log(10e-5)
