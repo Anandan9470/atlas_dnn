@@ -110,7 +110,9 @@ def voxalize_by_layer(event_cylindrical, layer, segments):
     event_cylindrical_layer_wise = event_cylindrical.loc[event_cylindrical.colors==layer, :]
 
     if event_cylindrical_layer_wise.shape[0] == 0:
-        return np.zeros(shape=(len(segments[0])*len(segments[1])*len(segments[2])))
+        return np.zeros(shape=(max(1,len(segments[0])-1),
+                               max(1,len(segments[1])-1),
+                               max(1,len(segments[2])-1)))
 
     ref_cloud = PyntCloud(event_cylindrical_layer_wise)
     voxelgrid_id = ref_cloud.add_structure("voxelgrid", segments=segments)
@@ -119,11 +121,11 @@ def voxalize_by_layer(event_cylindrical, layer, segments):
     return feature_vector#.reshape((-1,))
 
 
-s,e = 0,3
+s,e = 0,90
 event_range = range(s,e)
-xyzE = get_events(event_range)
+#xyzE = get_events(event_range)
 
-event=1
+event=88
 event_cartisian = xyzE[event]
 
 event_cartisian = pd.DataFrame(event_cartisian, columns=['x','y','z','E','colors'])
@@ -159,28 +161,20 @@ data_dict = {'r':event_r_transformed, 'alpha':event_alpha_transformed, 'z':event
              'E':event_cartisian.E.values, 'colors':event_cartisian.colors.values}
 
 event_cylindrical = pd.DataFrame(data_dict)
-'''
-fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
-ax.scatter(event_cylindrical.r, event_cylindrical.alpha, event_cylindrical.z, s=1, c='b')
-ax.set_xlabel('r')
-ax.set_ylabel('alpha')
-ax.set_zlabel('z')
-plt.show()
-'''
+
 r_lower, r_upper = 0, 350
 alpha_lower, alpha_upper = -3.14, 3.14
 
 event_cylindrical = filter_hits_by_angle(event_cylindrical,
-                                       r_angles=[r_lower, r_upper],
-                                       alpha_angles=[alpha_lower, alpha_upper])
+                                         r_angles=[r_lower, r_upper],
+                                         alpha_angles=[alpha_lower, alpha_upper])
 
 fig = plt.figure()
 ax = fig.add_subplot(121, projection='3d')
 ax.scatter(event_cylindrical.r, event_cylindrical.alpha, event_cylindrical.z, s=1, c=event_cylindrical.colors)
 ax.set_xlabel('r')
-ax.set_ylabel('alpha')
-ax.set_zlabel('z')
+ax.set_ylabel('phi')
+ax.set_zlabel('eta')
 
 layer_0_min = np.ceil(event_cylindrical.loc[event_cylindrical.colors=='r'].z.min())+1
 layer_0_max = np.ceil(event_cylindrical.loc[event_cylindrical.colors=='r'].z.max())-1

@@ -29,7 +29,7 @@ batch_transformed = data_gen.__next__()
 
 for i,b in enumerate(batch_transformed):
 
-    b = np.reshape(b, newshape=(10,50), order='F')
+    b = np.reshape(b, newshape=(10,23), order='F')
     b = np.log(b+10e-5)
 
     b[b<=0] = np.log(10e-5)
