@@ -15,12 +15,14 @@ path="/media/anandan/3474068674064B56/CERN/Program/atlas_sim_gan/"
 
 def get_data():
 
-    data = np.loadtxt(path+"data/vectorized_cylindrical_log/batch_0.csv", delimiter=',')
+    data = np.loadtxt(path+"data/vectorized_cylindrical_230dim.csv", delimiter=',')
+    #data[data<10] = 0
+    #data = data/data.max()
     #data = np.loadtxt(path+"data/samples/samples_tanh.csv", delimiter=',')
 
     while(True):
 
-        batch = data[np.random.choice(data.shape[0], 50, replace=False)]
+        batch = data[np.random.choice(data.shape[0], 20, replace=False)]
         #batch = np.tanh(0.1*np.log(batch+10e-5))
         yield batch
 
@@ -32,7 +34,6 @@ for i,b in enumerate(batch_transformed):
     b = np.reshape(b, newshape=(10,23), order='F')
     b = np.log(b+10e-5)
 
-    b[b<=0] = np.log(10e-5)
     num_levels = 200
     vmin, vmax = b.min(), b.max()
     midpoint = 0

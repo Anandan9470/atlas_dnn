@@ -6,7 +6,7 @@ from __future__ import print_function, division
 
 from keras.datasets import mnist
 from keras.layers.merge import _Merge
-from keras.layers import Input, Dense, Reshape, Flatten, Dropout
+from keras.layers import Input, Dense, Reshape, Flatten, Dropout, merge
 from keras.layers import BatchNormalization, Activation
 from keras.layers.advanced_activations import LeakyReLU
 from keras.models import Sequential, Model
@@ -25,24 +25,25 @@ path = "/media/anandan/3474068674064B56/CERN/Program/atlas_sim_gan/"
 
 def get_data():
 
-    data = np.loadtxt(path+"data/vectorized/vectorized_cylindrical.csv", delimiter=',')
+    data = np.loadtxt(path+"data/vectorized_cylindrical_230dim.csv", delimiter=',')
 
     while(True):
 
         batch = data[np.random.choice(data.shape[0], 128, replace=False)]
+        batch = batch/65536
         yield batch
 
 class RandomWeightedAverage(_Merge):
     """Provides a (random) weighted average between real and generated image samples"""
     def _merge_function(self, inputs):
-        alpha = K.random_uniform((32, 1, 1, 1))
+        alpha = K.random_uniform((1, 230))
         return (alpha * inputs[0]) + ((1 - alpha) * inputs[1])
 
 class WGANGP():
     def __init__(self):
 
-        self.img_dim = 501
-        self.latent_dim = 21
+        self.img_dim = 230
+        self.latent_dim = 20
 
         # Following parameter and optimizer set as recommended in paper
         self.n_critic = 5
@@ -62,20 +63,21 @@ class WGANGP():
 
         # Image input (real sample)
         real_img = Input(shape=(self.img_dim,))
+        energy_labels = Input(shape=(1,))
 
         # Noise input
         z_disc = Input(shape=(self.latent_dim,))
         # Generate image based of noise (fake sample)
-        fake_img = self.generator(z_disc)
+        fake_img = self.generator([z_disc, energy_labels])
 
         # Discriminator determines validity of the real and fake images
-        fake = self.critic(fake_img)
-        valid = self.critic(real_img)
+        fake = self.critic([fake_img, energy_labels])
+        valid = self.critic([real_img, energy_labels])
 
         # Construct weighted average between real and fake images
         interpolated_img = RandomWeightedAverage()([real_img, fake_img])
         # Determine validity of weighted sample
-        validity_interpolated = self.critic(interpolated_img)
+        validity_interpolated = self.critic([interpolated_img, energy_labels])
 
         # Use Python partial to provide loss function with additional
         # 'averaged_samples' argument
@@ -83,8 +85,8 @@ class WGANGP():
                           averaged_samples=interpolated_img)
         partial_gp_loss.__name__ = 'gradient_penalty' # Keras requires function names
 
-        self.critic_model = Model(inputs=[real_img, z_disc],
-                            outputs=[valid, fake, validity_interpolated])
+        self.critic_model = Model(inputs=[real_img, energy_labels, z_disc],
+                                  outputs=[valid, fake, validity_interpolated])
         self.critic_model.compile(loss=[self.wasserstein_loss,
                                         self.wasserstein_loss,
                                         partial_gp_loss],
@@ -102,11 +104,11 @@ class WGANGP():
         # Sampled noise for input to generator
         z_gen = Input(shape=(self.latent_dim,))
         # Generate images based of noise
-        img = self.generator(z_gen)
+        img = self.generator([z_gen, energy_labels])
         # Discriminator determines validity
-        valid = self.critic(img)
+        valid = self.critic([img, energy_labels])
         # Defines generator model
-        self.generator_model = Model(z_gen, valid)
+        self.generator_model = Model([z_gen, energy_labels], valid)
         self.generator_model.compile(loss=self.wasserstein_loss, optimizer=optimizer)
 
 
@@ -134,39 +136,43 @@ class WGANGP():
     def build_generator(self):
 
         model = Sequential()
-        model.add(Dense(50, input_dim=self.latent_dim))
+        model.add(Dense(50, input_dim=self.latent_dim+1))
         model.add(LeakyReLU(alpha=0.2))
         model.add(BatchNormalization(momentum=0.8))
-        model.add(Dense(250))
+        model.add(Dense(100))
         model.add(LeakyReLU(alpha=0.2))
         model.add(BatchNormalization(momentum=0.8))
-        model.add(Dense(400))
+        model.add(Dense(200))
         model.add(LeakyReLU(alpha=0.2))
         model.add(BatchNormalization(momentum=0.8))
         model.add(Dense(self.img_dim))
-        model.summary()
+        #model.summary()
 
         noise = Input(shape=(self.latent_dim,))
-        img = model(noise)
+        energy = Input(shape=(1,))
+        merged = merge([noise, energy], mode='concat', concat_axis=-1)
+        img = model(merged)
 
-        return Model(noise, img)
+        return Model([noise, energy], img)
 
     def build_critic(self):
 
         model = Sequential()
-        model.add(Dense(300, input_dim=self.img_dim))
+        model.add(Dense(231, input_dim=self.img_dim+1))
         model.add(LeakyReLU(alpha=0.2))
-        model.add(Dense(200))
+        model.add(Dense(231))
         model.add(LeakyReLU(alpha=0.2))
-        model.add(Dense(100))
+        model.add(Dense(231))
         model.add(LeakyReLU(alpha=0.2))
         model.add(Dense(1))
-        model.summary()
+        #model.summary()
 
         img = Input(shape=(self.img_dim,))
-        validity = model(img)
+        energy = Input(shape=(1,))
+        merged = merge([img, energy], mode='concat',concat_axis=-1)
+        validity = model(merged)
 
-        return Model(img, validity)
+        return Model([img, energy], validity)
 
     def train(self, epochs, batch_size, sample_interval=50):
 
@@ -174,33 +180,31 @@ class WGANGP():
         data_gen = get_data()
 
         # Adversarial ground truths
-        valid = -np.ones((batch_size, 1))
-        fake =  np.ones((batch_size, 1))
+        valid = np.random.uniform(-1.1, -0.9, (batch_size, 1))
+        fake =  np.random.uniform(0.9, 1.1, (batch_size, 1))
         dummy = np.zeros((batch_size, 1)) # Dummy gt for gradient penalty
         for epoch in range(epochs):
 
             for _ in range(self.n_critic):
 
                 X_train = data_gen.__next__()
-                total_energy = X_train.sum(axis=1, keepdims=True)
-                X_train = np.hstack([X_train, total_energy])
+                total_energy = np.log10(np.ones((batch_size, 1))*65536)
 
                 # ---------------------
                 #  Train Discriminator
                 # ---------------------
 
                 # Sample generator input
-                noise = np.random.normal(0, 1, (batch_size, self.latent_dim-1))
-                noise = np.hstack([noise, total_energy])
+                noise = np.random.normal(-1, 1, (batch_size, self.latent_dim))
                 # Train the critic
-                d_loss = self.critic_model.train_on_batch([X_train, noise],
+                d_loss = self.critic_model.train_on_batch([X_train,total_energy,noise],
                                                           [valid, fake, dummy])
 
             # ---------------------
             #  Train Generator
             # ---------------------
 
-            g_loss = self.generator_model.train_on_batch(noise, valid)
+            g_loss = self.generator_model.train_on_batch([noise,total_energy], valid)
 
             # If at save interval => save generated image samples
             if epoch % sample_interval == 0:
@@ -209,15 +213,16 @@ class WGANGP():
 
     def sample_images(self, epoch):
         r, c = 2, 2
-        noise = np.random.normal(0, 1, (r * c, self.latent_dim))
-        gen_imgs = self.generator.predict(noise)
+        noise = np.random.normal(-1, 1, (r*c, self.latent_dim))
+        total_energy = np.log10(np.ones((r*c, 1))*65536)
+        gen_imgs = self.generator.predict([noise, total_energy])
 
         fig, axs = plt.subplots(r, c)
         cnt = 0
         for i in range(r):
             for j in range(c):
 
-                img = np.reshape(gen_imgs[cnt], newshape=(10,50), order='F')
+                img = np.reshape(gen_imgs[cnt], newshape=(10,23), order='F')
 
                 num_levels = 20
                 vmin, vmax = img.min(), img.max()
@@ -238,7 +243,7 @@ class WGANGP():
 
     def save_model_to_disk(self):
 
-        noise = np.random.normal(0, 1, (10000, self.latent_dim))
+        noise = np.random.normal(-1, 1, (10000, self.latent_dim))
         gen_imgs = self.generator.predict(noise)
         np.savetxt("./saved_model/samples.csv", gen_imgs, delimiter=',')
 

@@ -11,6 +11,7 @@ import pandas as pd
 from PC import PyntCloud
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+from math import pi
 
 path = "/media/anandan/3474068674064B56/CERN/Program/atlas_sim_gan/"
 filename = "NTUP_FCS.13289379._000001.pool.root.1"
@@ -121,11 +122,11 @@ def voxalize_by_layer(event_cylindrical, layer, segments):
     return feature_vector#.reshape((-1,))
 
 
-s,e = 0,90
+s,e = 0,250
 event_range = range(s,e)
 #xyzE = get_events(event_range)
 
-event=88
+event=243
 event_cartisian = xyzE[event]
 
 event_cartisian = pd.DataFrame(event_cartisian, columns=['x','y','z','E','colors'])
@@ -143,7 +144,9 @@ phi = pd.read_csv(path+"data/truth_angles/"+filename+"_phi.csv", header=None, us
 r = pd.read_csv(path+"data/truth_angles/"+filename+"_r.csv", header=None, usecols=[0, 1, 2, 3])
 
 event_r = np.linalg.norm(event_cartisian.loc[:,['x','y']], axis=1)
-event_phi = np.arctan2(event_cartisian.loc[:,'y'], event_cartisian.loc[:,'x'])
+event_phi = np.arctan2(event_cartisian.loc[:,'y'],event_cartisian.loc[:,'x'])
+if np.abs(event_phi.mean()-phi) > 0.1:
+    continue
 event_eta = np.arcsinh(event_cartisian.loc[:,'z']/event_r)
 
 event_delta_phi = event_phi - phi.iloc[event, 0]
@@ -162,19 +165,19 @@ data_dict = {'r':event_r_transformed, 'alpha':event_alpha_transformed, 'z':event
 
 event_cylindrical = pd.DataFrame(data_dict)
 
-r_lower, r_upper = 0, 350
-alpha_lower, alpha_upper = -3.14, 3.14
-
-event_cylindrical = filter_hits_by_angle(event_cylindrical,
-                                         r_angles=[r_lower, r_upper],
-                                         alpha_angles=[alpha_lower, alpha_upper])
-
 fig = plt.figure()
 ax = fig.add_subplot(121, projection='3d')
 ax.scatter(event_cylindrical.r, event_cylindrical.alpha, event_cylindrical.z, s=1, c=event_cylindrical.colors)
 ax.set_xlabel('r')
 ax.set_ylabel('phi')
 ax.set_zlabel('eta')
+
+r_lower, r_upper = 0, 350
+alpha_lower, alpha_upper = -3.14, 3.14
+
+event_cylindrical = filter_hits_by_angle(event_cylindrical,
+                                         r_angles=[r_lower, r_upper],
+                                         alpha_angles=[alpha_lower, alpha_upper])
 
 layer_0_min = np.ceil(event_cylindrical.loc[event_cylindrical.colors=='r'].z.min())+1
 layer_0_max = np.ceil(event_cylindrical.loc[event_cylindrical.colors=='r'].z.max())-1

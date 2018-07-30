@@ -11,12 +11,14 @@ import pandas as pd
 from pyntcloud import PyntCloud
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-from math import pi
+
+import warnings
+warnings.filterwarnings("ignore")
 
 path = "/media/anandan/3474068674064B56/CERN/Program/atlas_sim_gan/"
 filename = "NTUP_FCS.13289379._000001.pool.root.1"
 
-def get_hits(event_range, layer):
+def get_hits(event_range=range(0,10), layer=0):
 
     xyzE = []
 
@@ -45,7 +47,7 @@ def get_hits(event_range, layer):
 
     return xyzE
 
-def get_events(event_range):
+def get_events(event_range=range(0,10)):
 
     xyzE_layer = []
 
@@ -93,7 +95,7 @@ def filter_hits_by_dynamic_angle(event_spherical, layer, multiplier=2):
 
     return event_spherical
 
-def filter_hits_by_angle(event_spherical, layer, r_angles, alpha_angles):
+def filter_hits_by_angle(event_spherical, r_angles, alpha_angles, layer):
 
     r_lower, r_upper = r_angles[0], r_angles[1]
     alpha_lower, alpha_upper = alpha_angles[0], alpha_angles[1]
@@ -111,9 +113,9 @@ def voxalize_by_layer(event_cylindrical, layer, segments):
     event_cylindrical_layer_wise = event_cylindrical.loc[event_cylindrical.colors==layer, :]
 
     if event_cylindrical_layer_wise.shape[0] == 0:
-        return np.zeros(shape=(max(1,len(segments[0])-1)*
-                               max(1,len(segments[1])-1)*
-                               max(1,len(segments[2])-1)))
+        return np.zeros(shape=((len(segments[0])-1) *
+                               (len(segments[1])-1) *
+                               (len(segments[2])) ))
 
     ref_cloud = PyntCloud(event_cylindrical_layer_wise)
     voxelgrid_id = ref_cloud.add_structure("voxelgrid", segments=segments)
@@ -122,17 +124,21 @@ def voxalize_by_layer(event_cylindrical, layer, segments):
 
     return feature_vector.reshape((-1,))
 
-for n in range(0,20):
+events_r = []
+events_E = []
+
+
+for n in range(0,1):
 
     s = n*100
-    e = s+100
+    e = s+200
 
     event_range = range(s,e)
     xyzE = get_events(event_range)
 
     print("Percentage complted: %10.2f" %(n))
 
-    batch = np.empty((0,230), float)
+    batch = np.empty((0,400), float)
 
     for i, event in enumerate(event_range):
 
@@ -154,91 +160,16 @@ for n in range(0,20):
 
         event_r = np.linalg.norm(event_cartisian.loc[:,['x','y']], axis=1)
         event_phi = np.arctan2(event_cartisian.loc[:,'y'], event_cartisian.loc[:,'x'])
-        if abs(np.average(event_phi)-phi.loc[event,0] ) > 0.1:
-            continue
-            #event_phi = np.arctan(event_cartisian.loc[:,'y']/event_cartisian.loc[:,'x'])+pi
         event_eta = np.arcsinh(event_cartisian.loc[:,'z']/event_r)
 
         event_delta_phi = event_phi - phi.iloc[event, 0]
         event_delta_eta = event_eta - eta.iloc[event, 0]
 
-        event_eta_jacobi = np.abs(2*np.exp(-event_eta)/(1+np.exp(-2*event_eta)))
-        event_phi_mm = event_delta_phi * event_r
-        event_eta_mm = event_delta_eta * event_eta_jacobi * np.sqrt(event_r**2 + event_cartisian.z**2)
+        events_r.extend(event_r)
+        events_E.extend(event_cartisian.E)
 
-        event_r_transformed = np.sqrt(event_phi_mm**2 + event_eta_mm**2)
-        event_alpha_transformed = np.arctan2(event_phi_mm, event_eta_mm)
-        event_z_transformed = event_r
+events_r = np.array(events_r)
+events_E = np.array(events_E)
 
-        data_dict = {'r':event_r_transformed, 'alpha':event_alpha_transformed, 'z':event_z_transformed,
-                     'E':event_cartisian.E.values, 'colors':event_cartisian.colors.values}
-
-        event_cylindrical = pd.DataFrame(data_dict)
-
-        r_lower, r_upper = 0, 350
-        alpha_lower, alpha_upper = -3.15, 3.15
-
-        event_cylindrical = filter_hits_by_angle(event_cylindrical,
-                                                 r_angles=[r_lower, r_upper],
-                                                 alpha_angles=[alpha_lower, alpha_upper])
-
-#        fig = plt.figure()
-#        ax = fig.add_subplot(111, projection='3d')
-#        ax.scatter(event_cylindrical.r, event_cylindrical.alpha, event_cylindrical.z, s=1, c=event_cylindrical.colors)
-#        ax.set_xlabel('r')
-#        ax.set_ylabel('alpha')
-#        ax.set_zlabel('z')
-
-        layer_0_min = np.ceil(event_cylindrical.loc[event_cylindrical.colors=='r'].z.min())+1
-        layer_0_max = np.ceil(event_cylindrical.loc[event_cylindrical.colors=='r'].z.max())-1
-        layer_1_min = np.ceil(event_cylindrical.loc[event_cylindrical.colors=='b'].z.min())+1
-        layer_1_max = np.ceil(event_cylindrical.loc[event_cylindrical.colors=='b'].z.max())-1
-        layer_2_min = np.ceil(event_cylindrical.loc[event_cylindrical.colors=='g'].z.min())+1
-        layer_2_max = np.ceil(event_cylindrical.loc[event_cylindrical.colors=='g'].z.max())-1
-        layer_3_min = np.ceil(event_cylindrical.loc[event_cylindrical.colors=='c'].z.min())+1
-        layer_3_max = np.ceil(event_cylindrical.loc[event_cylindrical.colors=='c'].z.max())-1
-        layer_12_min = np.ceil(event_cylindrical.loc[event_cylindrical.colors=='m'].z.min())+1
-        layer_12_max = np.ceil(event_cylindrical.loc[event_cylindrical.colors=='m'].z.max())-1
-
-        #r_binnings = np.loadtxt('r_binnings.csv', delimiter=',')
-
-        feature_vector_r = voxalize_by_layer(event_cylindrical,
-                                             layer='r',
-                                             segments = [np.linspace(r_lower, r_upper, 11),
-                                                         np.linspace(alpha_lower, alpha_upper, 11),
-                                                         np.linspace(layer_0_min, layer_0_max, 11
-
-        feature_vector_b = voxalize_by_layer(event_cylindrical,
-                                             layer='b',
-                                             segments = [np.linspace(r_lower, r_upper, 11),
-                                                         np.linspace(alpha_lower, alpha_upper, 11),
-                                                         np.linspace(layer_1_min, layer_1_max, 1)])
-
-        feature_vector_g = voxalize_by_layer(event_cylindrical,
-                                             layer='g',
-                                             segments = [np.linspace(r_lower, r_upper, 11),
-                                                         np.linspace(alpha_lower, alpha_upper, 11),
-                                                         np.linspace(layer_2_min, layer_2_max, 1)])
-
-        feature_vector_c = voxalize_by_layer(event_cylindrical,
-                                             layer='c',
-                                             segments = [np.linspace(r_lower, r_upper, 11),
-                                                         np.linspace(alpha_lower, alpha_upper, 1),
-                                                         np.linspace(layer_3_min, layer_3_max, 1)])
-
-        feature_vector_m = voxalize_by_layer(event_cylindrical,
-                                             layer='m',
-                                             segments = [np.linspace(r_lower, r_upper, 11),
-                                                         np.linspace(alpha_lower, alpha_upper, 1),
-                                                         np.linspace(layer_12_min, layer_12_max, 1)])
-
-        feature_vector = np.concatenate([feature_vector_r,
-                                         feature_vector_b,
-                                         feature_vector_g,
-                                         feature_vector_c,
-                                         feature_vector_m], axis=0)
-
-        batch = np.vstack((batch, feature_vector))
-
-
-    np.savetxt(path+"data/vectorized_cylindrical_230dim/data_v2/batch_%d.csv" %n, batch, delimiter=',')
+plt.hist(events_r, weights=events_E, bins=500, histtype=u'step')
+plt.show()
